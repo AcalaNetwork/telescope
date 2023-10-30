@@ -11,7 +11,7 @@ import {
 dotenv.config();
 
 const env = cleanEnv(process.env, {
-  PASSWORD_PROD: str(),
+  // PASSWORD_PROD: str(),
   PASSWORD_DEV: str(),
   API_KEY: str(),
 });
