@@ -1,18 +1,9 @@
-import { readCSV, writeCSV } from '../utils';
+import { Row, Tx } from './pull';
+import { flow } from 'lodash';
+import { unparse } from 'papaparse';
 
-// truncate *last* x percent of data
-const _truncate = async (csvData: any[], percent: number) => {
-  if (percent <= 0 || percent > 100) {
-    throw new Error('invalid truncate percent');
-  }
-
-  const rowCount = csvData.length;
-  const rowsToExtract = Math.ceil(rowCount * (percent / 100));
-  return csvData.slice(-rowsToExtract);
-};
-
-const pickColumns = (csvData: any[], columns: string[]) => csvData.map(d => 
-  columns.reduce((acc, col) => ({ ...acc, [col]: d[col] }), {}),
+const pickColumns = (columns: string[]) => (csvData: Row[]) => csvData.map(d =>
+  columns.reduce<Tx>((acc, col) => ({ ...acc, [col]: d[col] }), {} as Tx),
 );
 
 // this shape is compatible with dune
@@ -30,16 +21,13 @@ const formatDate = (input: string): string => {
   return `${YYYY}-${MM}-${DD} ${HH}:${mm}:${ss}`;
 };
 
-const toSimpleTimestamp = (csvData: any[]) => csvData.map(rowData => ({
+const toSimpleTimestamp = (csvData: Tx[]) => csvData.map<Tx>(rowData => ({
   ...rowData,
   timestamp: formatDate(rowData.timestamp),
 }));
 
-export async function transformCSV(filename: string): Promise<void> {
-  console.log(`transforming ${filename} ...`);
-  const rawData = await readCSV(filename);
-  const data = toSimpleTimestamp(pickColumns(rawData, ['timestamp', 'pool_id', 'amount', 'from', 'type']));
-
-  await writeCSV(filename, data);
-  console.log('transformation finished!');
-}
+export const transformCSV = flow<[Row[]], Tx[], Tx[], string>(
+  pickColumns(['timestamp', 'pool_id', 'amount', 'from', 'type']),
+  toSimpleTimestamp,
+  unparse,
+);

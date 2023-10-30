@@ -1,28 +1,21 @@
 import axios from 'axios';
-import fs from 'fs/promises';
-
-import { readCSV } from '../utils';
 
 const DUNE_URL = 'https://api.dune.com/api/v1/table/upload/csv';
 
-interface UploadParamsBase {
+interface UploadParams {
+  data: string,
+  description: string,
   tableName: string,
-  filename: string,
   apiKey: string,
 }
 
-interface UploadParamsDune extends UploadParamsBase {
-  description: string,
-}
-
 export const uploadToDune = async ({
-  filename,
+  data,
   apiKey,
   tableName,
   description,
-}: UploadParamsDune) => {
+}: UploadParams) => {
   console.log(`uploading data to dune table ${tableName} ...`);
-  const data = await fs.readFile(filename, 'utf-8');
 
   const headers = {
     'X-Dune-Api-Key': apiKey,

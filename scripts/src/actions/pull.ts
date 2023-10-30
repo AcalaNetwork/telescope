@@ -1,9 +1,19 @@
-import Papa from 'papaparse';
 import { Client, ClientConfig } from 'pg';
 import dotenv from 'dotenv';
-import fs from 'fs';
 
 dotenv.config();
+
+export interface Tx {
+  timestamp: string;
+  pool_id: string;
+  amount: string;
+  from: string;
+  type: string;
+}
+
+export interface Row extends Tx {
+  [key: string]: any;
+}
 
 interface QueryTarget {
   schema: string,
@@ -32,12 +42,7 @@ export const pullDataFromDb = async ({
   password,
   schema,
   tables,
-  filenames,
-}: QueryParams) => {
-  if (tables.length !== filenames.length) {
-    throw new Error('tables and filenames should have the same length');
-  }
-
+}: QueryParams): Promise<Row[][]> => {
   const client = new Client({
     host: host,
     port: port,
@@ -46,23 +51,15 @@ export const pullDataFromDb = async ({
     password: password,
   });
 
-  const savedFiles = [];
+  const res = [];
   try {
-    console.log('connecting to db ...');
     await client.connect();
-    console.log('db connected!');
 
     const tableNames = tables ?? await getAllTables(client, schema);
 
-    for (const [i, table] of tableNames.entries()) {
-      const targetFile = filenames[i] ?? `${table}.csv`;
-      const dataRes = await client.query(`SELECT * FROM "${schema}"."${table}"`);
-
-      const csv = Papa.unparse(dataRes.rows);
-      fs.writeFileSync(targetFile, csv);
-
-      savedFiles.push(targetFile);
-      console.log(`saved [${schema}.${table}] data to [${targetFile}]`);
+    for (const table of tableNames) {
+      const data = await client.query(`SELECT * FROM "${schema}"."${table}"`);
+      res.push(data.rows);
     }
 
   } catch (err) {
@@ -71,5 +68,5 @@ export const pullDataFromDb = async ({
     await client.end();
   }
 
-  return savedFiles;
+  return res;
 };
