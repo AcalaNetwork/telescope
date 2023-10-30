@@ -1,1 +1,2 @@
-# euphrates-analytics
+# Euphrates Analytics
+Tools for Euphrates Analytics
