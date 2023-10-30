@@ -1,0 +1,10 @@
+type StakeTx @entity {
+  id: ID!
+  type: Int!  # 1: stake, 0: unstake
+  from: String!
+  txHash: String!
+  blockNumber: Int!
+  timestamp: Date!
+  poolId: Int!
+  amount: BigInt!
+}
