@@ -1,6 +1,5 @@
+import { DUNE_URL } from '../consts';
 import axios from 'axios';
-
-const DUNE_URL = 'https://api.dune.com/api/v1/table/upload/csv';
 
 interface UploadParams {
   data: string,

@@ -1,5 +1,5 @@
 {
-  "name": "acala-analytics-scrips",
+  "name": "acala-data-porter",
   "version": "1.0.0",
   "main": "src/index.ts",
   "license": "MIT",

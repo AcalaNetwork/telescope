@@ -1,3 +1,5 @@
+export const DUNE_URL = 'https://api.dune.com/api/v1/table/upload/csv';
+
 export const DB_CONFIG_PROD = {
   host: 'evm-subql-cluster.cluster-ro-cwi35kgo8jvg.ap-southeast-1.rds.amazonaws.com',
   port: 5432,

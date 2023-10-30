@@ -1,2 +1,2 @@
-# Euphrates Analytics
-Tools for Euphrates Analytics
+# Analytics
+Tools for Acala Analytics, currently for Euphrates only

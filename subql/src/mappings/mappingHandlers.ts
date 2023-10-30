@@ -1,5 +1,5 @@
 import {
-  StakeLog,
+  StakeLog, UnstakeLog,
 } from "../types/abi-interfaces/Staking";
 import { StakeTx } from "../types";
 import assert from "assert";
@@ -23,7 +23,7 @@ export async function handleStake(log: StakeLog): Promise<void> {
   await tx.save();
 }
 
-export async function handleUnstake(log: StakeLog): Promise<void> {
+export async function handleUnstake(log: UnstakeLog): Promise<void> {
   logger.info("new unstaking at block " + log.blockNumber.toString());
 
   assert(log.args, "Require args on the logs");

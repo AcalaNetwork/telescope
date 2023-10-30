@@ -17,6 +17,7 @@ const env = cleanEnv(process.env, {
 
 const main = async () => {
   console.log('fetching data from db ...');
+
   const [rawData] = await pullDataFromDb({
     ...DB_CONFIG_DEV,
     schema: 'euphrates-2',
