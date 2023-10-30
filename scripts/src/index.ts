@@ -1,13 +1,11 @@
 import { cleanEnv, str } from 'envalid';
 import dotenv from 'dotenv';
 
-import { DB_CONFIG_DEV, DB_CONFIG_PROD, FP_DATA_TYPE } from './consts';
+import { DB_CONFIG_DEV, DB_CONFIG_PROD } from './consts';
 import {
   pullDataFromDb,
   transformCSV,
-  uploadToDappLooker,
   uploadToDune,
-  uploadToFootprint,
 } from './actions';
 
 dotenv.config();
@@ -44,27 +42,6 @@ const main = async () => {
     // transformCSV(receiptFile),
     transformCSV(euphratesFile),
   ]);
-
-  // await uploadToFootprint({
-  //   type: FP_DATA_TYPE.AcalaLogs,
-  //   tableName: 'acala_logs',
-  //   filename: logFile,
-  //   apiKey: env.API_KEY,
-  // });
-
-  // await uploadToFootprint({
-  //   type: FP_DATA_TYPE.AcalaReceipts,
-  //   tableName: 'acala_receipts',
-  //   filename: receiptFile,
-  //   apiKey: env.API_KEY,
-  // });
-
-  // await uploadToFootprint({
-  //   type: FP_DATA_TYPE.EuphratesStake,
-  //   tableName: 'euphrates_stake',
-  //   filename: euphratesFile,
-  //   apiKey: env.API_KEY,
-  // });
 
   await uploadToDune({
     filename: euphratesFile,
