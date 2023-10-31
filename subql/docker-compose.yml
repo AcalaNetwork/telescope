@@ -1,0 +1,64 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:12-alpine
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 100
+
+  subquery-node:
+    image: onfinality/subql-node-ethereum:latest
+    depends_on:
+      "postgres":
+        condition: service_healthy
+    restart: always
+    environment:
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_DATABASE: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+    volumes:
+      - ./:/app
+    command:
+      - -f=ipfs://QmTcGxsYakXPsNMFLiG7QWzsU3D3kve2cVAD18FgiG6WxF
+      # - -f=./app
+      - --db-schema=euphrates
+      - --workers=4
+      - --batch-size=30
+      - --unfinalized-blocks=false
+      - --disable-historical
+      - --network-endpoint=https://eth-rpc-acala.aca-api.network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://subquery-node:3000/ready"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  graphql-engine:
+    image: onfinality/subql-query:latest
+    ports:
+      - 3000:3000
+    depends_on:
+      "postgres":
+        condition: service_healthy
+      "subquery-node":
+        condition: service_healthy
+    restart: always
+    environment:
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_DATABASE: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+    command:
+      - --name=app
+      - --playground
+      - --indexer=http://subquery-node:3000
