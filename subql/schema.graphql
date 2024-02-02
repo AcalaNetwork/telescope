@@ -6,5 +6,6 @@ type StakeTx @entity {
   blockNumber: Int!
   timestamp: Date!
   poolId: Int!
-  amount: BigInt!
+  amount: BigInt!   # dot equivalent amount
+  originalAmount: BigInt   # original amount
 }

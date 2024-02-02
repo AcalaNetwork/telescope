@@ -13,6 +13,7 @@ dotenv.config();
 const env = cleanEnv(process.env, {
   PASSWORD_DEV: str(),
   API_KEY: str(),
+  DB_SCHEMA: str(),
 });
 
 const main = async () => {
@@ -20,7 +21,7 @@ const main = async () => {
 
   const [rawData] = await pullDataFromDb({
     ...DB_CONFIG_DEV,
-    schema: 'euphrates-2',
+    schema: env.DB_SCHEMA,
     tables: ['stake_txes'],
     filenames: ['euphrates_stake.csv'],
     password: env.PASSWORD_DEV,
