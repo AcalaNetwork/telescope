@@ -2,11 +2,10 @@ FROM node:16-alpine
 
 WORKDIR /app
 
-COPY ./package.json ./package.json
-COPY ./yarn.lock ./yarn.lock
+COPY ./data-porter/package.json ./package.json
 RUN yarn install --immutable
 
-COPY . .
+COPY ./data-porter .
 
 EXPOSE 3000
 
