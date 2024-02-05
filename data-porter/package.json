@@ -15,7 +15,6 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@types/axios": "^0.14.0",
     "@types/lodash": "^4.14.200",
     "@types/node": "^20.8.4",
     "@types/papaparse": "^5",

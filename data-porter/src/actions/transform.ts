@@ -26,8 +26,8 @@ const toSimpleTimestamp = (csvData: Tx[]) => csvData.map<Tx>(rowData => ({
   timestamp: formatDate(rowData.timestamp),
 }));
 
-export const transformCSV = flow<[Row[]], Tx[], Tx[], string>(
-  pickColumns(['timestamp', 'pool_id', 'amount', 'from', 'type']),
+export const transformCSV = flow<[Row[]], Row[], string>(
+  // pickColumns(['timestamp', 'pool_id', 'amount', 'from', 'type']),
   toSimpleTimestamp,
   unparse,
 );
