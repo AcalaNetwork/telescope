@@ -27,7 +27,7 @@ const main = async () => {
     password: env.PASSWORD_DEV,
   });
 
-  console.log('data fetching finished!');
+  console.log(`data fetching finished! ${rawData.length} rows fetched`);
 
   const data = transformCSV(rawData);
 
