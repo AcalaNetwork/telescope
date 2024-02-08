@@ -14,6 +14,7 @@ const env = cleanEnv(process.env, {
   PASSWORD_DEV: str(),
   API_KEY: str(),
   DB_SCHEMA: str(),
+  DUNE_TABLE_NAME: str(),
 });
 
 const main = async () => {
@@ -34,7 +35,7 @@ const main = async () => {
   await uploadToDune({
     data,
     apiKey: env.API_KEY,
-    tableName: 'euphrates_stake',
+    tableName: env.DUNE_TABLE_NAME,
     description: 'euphrates_stake',
   });
 };
