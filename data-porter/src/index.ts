@@ -14,6 +14,7 @@ const env = cleanEnv(process.env, {
   PASSWORD_DEV: str(),
   API_KEY: str(),
   DB_SCHEMA: str(),
+  DUNE_TABLE_NAME: str(),
 });
 
 const main = async () => {
@@ -27,14 +28,14 @@ const main = async () => {
     password: env.PASSWORD_DEV,
   });
 
-  console.log('data fetching finished!');
+  console.log(`data fetching finished! ${rawData.length} rows fetched`);
 
   const data = transformCSV(rawData);
 
   await uploadToDune({
     data,
     apiKey: env.API_KEY,
-    tableName: 'euphrates_stake',
+    tableName: env.DUNE_TABLE_NAME,
     description: 'euphrates_stake',
   });
 };
