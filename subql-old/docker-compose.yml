@@ -2,27 +2,23 @@ version: "3"
 
 services:
   postgres:
-    build:
-      context: .
-      dockerfile: ./docker/pg-Dockerfile
+    image: postgres:12-alpine
     ports:
       - 5432:5432
-    # volumes:
-    #   - .data/postgres:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 2s
       timeout: 5s
-      retries: 5
+      retries: 100
 
   subquery-node:
-    image: subquerynetwork/subql-node-substrate:latest
+    image: onfinality/subql-node-ethereum:latest
     depends_on:
       "postgres":
         condition: service_healthy
-    restart: unless-stopped
+    restart: always
     environment:
       DB_USER: postgres
       DB_PASS: postgres
@@ -32,11 +28,14 @@ services:
     volumes:
       - ./:/app
     command:
-      - ${SUB_COMMAND:-} # set SUB_COMMAND env variable to "test" to run tests
-      - -f=/app
-      - --db-schema=app
+      - -f=ipfs://QmR1bNNxccr9A8523Wq4WWgbDr7euY7jCBPq4gnAWuFv6N
+      # - -f=./app
+      - --db-schema=euphrates
       - --workers=4
-      - --batch-size=50
+      - --batch-size=30
+      - --unfinalized-blocks=false
+      - --disable-historical
+      - --network-endpoint=https://eth-rpc-acala.aca-api.network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://subquery-node:3000/ready"]
       interval: 3s
@@ -44,7 +43,7 @@ services:
       retries: 10
 
   graphql-engine:
-    image: subquerynetwork/subql-query:latest
+    image: onfinality/subql-query:latest
     ports:
       - 3000:3000
     depends_on:

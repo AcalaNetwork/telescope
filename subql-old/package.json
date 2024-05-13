@@ -1,0 +1,37 @@
+{
+  "name": "euphrates-analytics-subql",
+  "version": "0.0.2",
+  "description": "Subql for Acala Euphrates",
+  "main": "dist/index.js",
+  "scripts": {
+    "generate-types": "typechain --target=ethers-v5 --out-dir=./src/typechain abis/*.json",
+    "build": "subql build",
+    "codegen": "subql codegen && yarn generate-types",
+    "start:docker": "docker-compose pull && docker-compose up --remove-orphans",
+    "dev": "yarn codegen && yarn build && docker-compose pull && docker-compose up --remove-orphans",
+    "prepack": "rm -rf dist && npm run build",
+    "test": "jest"
+  },
+  "files": [
+    "dist",
+    "schema.graphql",
+    "project.yaml"
+  ],
+  "author": "Acala Team",
+  "license": "MIT",
+  "dependencies": {
+    "@subql/common": "latest",
+    "@subql/types-ethereum": "latest",
+    "@subql/validator": "latest",
+    "abab": "^2.0.6",
+    "assert": "^2.0.0"
+  },
+  "devDependencies": {
+    "@subql/cli": "latest",
+    "@subql/node-ethereum": "latest",
+    "@subql/testing": "latest",
+    "@subql/types": "latest",
+    "ethers": "^5.7.2",
+    "typescript": "latest"
+  }
+}

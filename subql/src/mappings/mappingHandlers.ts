@@ -1,69 +1,65 @@
-import assert from "assert";
+import { SubstrateBlock } from "@subql/types";
+import { formatUnits } from "@ethersproject/units";
 
-import {
-  StakeLog, UnstakeLog,
-} from "../types/abi-interfaces/Staking";
-import { StakeTx } from "../types";
-import { Homa__factory } from "../typechain";
+import { HomaState } from "../types";
 
-const HOMA_ADDR = '0x0000000000000000000000000000000000000805';
-const homa = Homa__factory.connect(HOMA_ADDR, api);
+const LDOT_DECIMALS = 10;
+const BLOCKS_IN_AN_HOUR = 60 * 60 / 12;
+const BLOCKS_IN_A_DAY = BLOCKS_IN_AN_HOUR * 24;
+const BLOCKS_IN_A_MONTH = BLOCKS_IN_A_DAY * 30;
+const DEFAULT_APY = 0.145;
 
-export const ldotToDotAmount = async (amount: bigint): Promise<bigint> => {
-  const exchangeRate = await homa.getExchangeRate();
-  return amount * exchangeRate.toBigInt() / BigInt(1e18);
-}
+export async function handleBlock(block: SubstrateBlock): Promise<void> {
+  const liquidToken = api.consts.homa.liquidCurrencyId;
+  const [rawBonded, rawTotalVoidLiquid, rawToBondPool, rawLiquidIssuance] = await Promise.all([
+    api.query.homa.totalStakingBonded(),
+    api.query.homa.totalVoidLiquid(),
+    api.query.homa.toBondPool(),
+    api.query.tokens.totalIssuance(liquidToken),
+  ]);
 
-export async function handleStake(log: StakeLog): Promise<void> {
-  logger.info("new staking at block " + log.blockNumber.toString());
-  assert(log.args, "Require args on the logs");
+  const bonded = rawBonded.toBigInt();
+  const toBondPool = rawToBondPool.toBigInt();
+  const liquidIssuance = rawLiquidIssuance.toBigInt();
+  const totalVoidLiquid = rawTotalVoidLiquid.toBigInt();
 
-  const poolId = log.args.poolId.toNumber();
-  let amount = log.args.amount.toBigInt();
-  const originalAmount = amount;
+  const totalBonded = toBondPool + bonded;
+  const exchangeRate = totalBonded * BigInt(10 ** LDOT_DECIMALS) / (liquidIssuance + totalVoidLiquid);
 
-  if (poolId === 5) {   // amount is in LDOT
-    amount = await ldotToDotAmount(amount)
+  const { hash, number } = block.block.header;
+  const blockHash = hash.toString();
+  const blockNumber = number.toNumber();
+  const id = `homa-${blockNumber}`;
+  const timestamp = block.timestamp;
+
+  const blockNumberMonthAgo = blockNumber - BLOCKS_IN_A_MONTH;
+  const homaStateMonthAgo = await HomaState.get(`homa-${blockNumberMonthAgo}`);
+
+  let apy = DEFAULT_APY;
+  if (homaStateMonthAgo) {
+    const r0 = Number(formatUnits(homaStateMonthAgo.exchangeRate, LDOT_DECIMALS));
+    const r1 = Number(formatUnits(exchangeRate, LDOT_DECIMALS));
+    const rateDiffMonth = r1 / r0;
+    apy = Number((rateDiffMonth ** (365 / 30) - 1).toFixed(8));
+
+    logger.info(JSON.stringify({
+      r0, r1, rateDiffMonth, apy
+    }))
   }
 
-  const tx = StakeTx.create({
-    type: 1,  // stake
-    id: log.transactionHash,
-    txHash: log.transactionHash,
-    from: log.transaction.from,
-    blockNumber: log.blockNumber,
-    timestamp: new Date(Number(log.transaction.blockTimestamp * 1000n) ),
-    poolId,
-    amount,
-    originalAmount,
-  });
+  const homaState = new HomaState(
+    id,
+    toBondPool,
+    bonded,
+    totalBonded,
+    liquidIssuance,
+    totalVoidLiquid,
+    exchangeRate,
+    apy,
+    timestamp,
+    blockNumber,
+    blockHash,
+  );
 
-  await tx.save();
-}
-
-export async function handleUnstake(log: UnstakeLog): Promise<void> {
-  logger.info("new unstaking at block " + log.blockNumber.toString());
-  assert(log.args, "Require args on the logs");
-
-  const poolId = log.args.poolId.toNumber();
-  let amount = log.args.amount.toBigInt();
-  const originalAmount = amount;
-
-  if (poolId === 5) {   // rawAmount is in LDOT
-    amount = await ldotToDotAmount(amount)
-  }
-
-  const tx = StakeTx.create({
-    type: 0,  // unstake
-    id: log.transactionHash,
-    txHash: log.transactionHash,
-    from: log.transaction.from,
-    blockNumber: log.blockNumber,
-    timestamp: new Date(Number(log.transaction.blockTimestamp * 1000n) ),
-    poolId,
-    amount,
-    originalAmount,
-  });
-
-  await tx.save();
+  await homaState.save(); 
 }

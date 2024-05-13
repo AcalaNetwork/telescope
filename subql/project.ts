@@ -1,20 +1,20 @@
 import {
-  EthereumProject,
-  EthereumDatasourceKind,
-  EthereumHandlerKind,
-} from "@subql/types-ethereum";
+  SubstrateDatasourceKind,
+  SubstrateHandlerKind,
+  SubstrateProject,
+} from "@subql/types";
 
-// Can expand the Datasource processor types via the generic param
-const project: EthereumProject = {
+// Can expand the Datasource processor types via the genreic param
+const project: SubstrateProject = {
   specVersion: "1.0.0",
   version: "0.0.1",
-  name: "euphrates analytics",
+  name: "homa-analytics",
   description:
-    "",
+    "homa analytics subql",
   runner: {
     node: {
-      name: "@subql/node-ethereum",
-      version: ">=3.0.0",
+      name: "@subql/node",
+      version: ">=3.0.1",
     },
     query: {
       name: "@subql/query",
@@ -25,53 +25,30 @@ const project: EthereumProject = {
     file: "./schema.graphql",
   },
   network: {
-    /**
-     * chainId is the EVM Chain ID, for Ethereum this is 1
-     * https://chainlist.org/chain/1
-     */
-    chainId: "787",
-    /**
-     * This endpoint must be a public non-pruned archive node
-     * Public nodes may be rate limited, which can affect indexing speed
-     * When developing your project we suggest getting a private API key
-     * You can get them from OnFinality for free https://app.onfinality.io
-     * https://documentation.onfinality.io/support/the-enhanced-api-service
-     */
-    endpoint: [ "https://eth-rpc-acala.aca-api.network" ],
-    // dictionary: "https://gx.api.subquery.network/sq/subquery/eth-dictionary",
+    chainId:"0xfc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c",
+    endpoint: ["wss://acala-rpc.aca-api.network"],
+    chaintypes: {
+      file: "./dist/chaintypes.js",
+    },
   },
   dataSources: [
     {
-      kind: EthereumDatasourceKind.Runtime,
-      startBlock: 4440289,
-      options: {
-        // Must be a key of assets
-        abi: "staking",
-        address: "0x7Fe92EC600F15cD25253b421bc151c51b0276b7D",
-      },
-      assets: new Map([["staking", { file: "./abis/Staking.json" }]]),
+      kind: SubstrateDatasourceKind.Runtime,
+      startBlock: 3000000,
       mapping: {
         file: "./dist/index.js",
         handlers: [
           {
-            kind: EthereumHandlerKind.Event,
-            handler: "handleStake",
+            kind: SubstrateHandlerKind.Block,
+            handler: "handleBlock",
             filter: {
-              topics: ["Stake(address,uint256,uint256)"],
-            },
-          },
-          {
-            kind: EthereumHandlerKind.Event,
-            handler: "handleUnstake",
-            filter: {
-              topics: ["Unstake(address,uint256,uint256)"],
+              modulo: 60 * 60 / 12,   // every hour
             },
           },
         ],
       },
     },
   ],
-  repository: "https://github.com/subquery/ethereum-subql-starter",
 };
 
 // Must set default to the project instance

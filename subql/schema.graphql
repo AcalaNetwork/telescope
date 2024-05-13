@@ -1,11 +1,20 @@
-type StakeTx @entity {
+# To improve query performance, we strongly suggest adding indexes to any field that you plan to filter or sort by
+# Add the `@index` or `@index(unique: true)` annotation after any non-key field
+# https://academy.subquery.network/build/graphql.html#indexing-by-non-primary-key-field
+
+type HomaState @entity {
   id: ID!
-  type: Int!  # 1: stake, 0: unstake
-  from: String!
-  txHash: String!
-  blockNumber: Int!
+
+  toBondPool: BigInt!
+  bonded: BigInt!
+  totalBonded: BigInt!
+  liquidIssuance: BigInt!
+  totalVoidLiquid: BigInt!
+
+  exchangeRate: BigInt!
+  apy: Float!
+
   timestamp: Date!
-  poolId: Int!
-  amount: BigInt!   # dot equivalent amount
-  originalAmount: BigInt   # original amount
+  blockNumber: Int!
+  blockHash: String!
 }
