@@ -41,10 +41,6 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
     const r1 = Number(formatUnits(exchangeRate, LDOT_DECIMALS));
     const rateDiffMonth = r1 / r0;
     apy = Number((rateDiffMonth ** (365 / 30) - 1).toFixed(8));
-
-    logger.info(JSON.stringify({
-      r0, r1, rateDiffMonth, apy
-    }))
   }
 
   const homaState = new HomaState(
