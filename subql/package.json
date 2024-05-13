@@ -1,7 +1,7 @@
 {
-  "name": "subql-homa",
+  "name": "subql-acala-stats",
   "version": "0.0.4",
-  "description": "Homa Subquery for Analytics",
+  "description": "Subquery for Acala Stats",
   "main": "dist/index.js",
   "scripts": {
     "build": "subql build",

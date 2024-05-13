@@ -8,9 +8,9 @@ import {
 const project: SubstrateProject = {
   specVersion: "1.0.0",
   version: "0.0.1",
-  name: "homa-analytics",
+  name: "acala-stats",
   description:
-    "homa analytics subql",
+    "acala stats subql",
   runner: {
     node: {
       name: "@subql/node",
