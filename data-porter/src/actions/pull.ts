@@ -1,65 +1,56 @@
 import { Client, ClientConfig } from 'pg';
-import dotenv from 'dotenv';
 
-dotenv.config();
+export type Extended<T> = T & { [key: string]: any };
 
-export interface Tx {
+export interface RowBase {
   timestamp: string;
-  pool_id: string;
-  amount: string;
-  from: string;
-  type: string;
 }
 
-export interface Row extends Tx {
-  [key: string]: any;
-}
+export type Row = Extended<RowBase>;
 
 interface QueryTarget {
   schema: string,
-  tables: string[],
-  filenames: string[],
+  tables?: string[],
 }
-type QueryParams = ClientConfig & QueryTarget;
+
+interface DbData <T = Row> {
+  schema: string,
+  table: string,
+  rows: T[],
+}
 
 const getAllTables = async (client: Client, schema: string) => {
   console.log(`querying all tables under schema ${schema} ...`);
 
   const res = await client.query(`
-        SELECT table_name 
-        FROM information_schema.tables 
-        WHERE table_schema = $1
-    `, [schema]);
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = $1
+  `, [schema]);
 
   return res.rows.map(row => row.table_name);
 };
 
-export const pullDataFromDb = async ({
-  host,
-  port,
-  database,
-  user,
-  password,
-  schema,
-  tables,
-}: QueryParams): Promise<Row[][]> => {
-  const client = new Client({
-    host: host,
-    port: port,
-    database: database,
-    user: user,
-    password: password,
-  });
+export const pullDataFromDb = async <T = Row>(
+  clientConfig: ClientConfig,
+  queryTarget: QueryTarget,
+): Promise<DbData<T>[]> => {
+  const { schema, tables } = queryTarget;
+  const client = new Client(clientConfig);
 
-  const res = [];
+  const res: DbData<T>[] = [];
   try {
     await client.connect();
 
     const tableNames = tables ?? await getAllTables(client, schema);
 
     for (const table of tableNames) {
-      const data = await client.query(`SELECT * FROM "${schema}"."${table}"`);
-      res.push(data.rows);
+      const { rows } = await client.query(`SELECT * FROM "${schema}"."${table}"`);
+      res.push({
+        schema,
+        table,
+        rows,
+      });
     }
 
   } catch (err) {

@@ -14,8 +14,6 @@ export const uploadToDune = async ({
   tableName,
   description,
 }: UploadParams) => {
-  console.log(`uploading data to dune table ${tableName} ...`);
-
   const headers = {
     'X-Dune-Api-Key': apiKey,
   };

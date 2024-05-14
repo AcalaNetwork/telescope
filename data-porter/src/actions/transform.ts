@@ -1,9 +1,10 @@
-import { Row, Tx } from './pull';
+import { Row } from './pull';
+
 import { flow } from 'lodash';
 import { unparse } from 'papaparse';
 
-const pickColumns = (columns: string[]) => (csvData: Row[]) => csvData.map(d =>
-  columns.reduce<Tx>((acc, col) => ({ ...acc, [col]: d[col] }), {} as Tx),
+const pickColumns = (columns: string[]) => (csvData: any[]) => csvData.map(d =>
+  columns.reduce((acc, col) => ({ ...acc, [col]: d[col] }), {}),
 );
 
 // this shape is compatible with dune
@@ -21,12 +22,12 @@ const formatDate = (input: string): string => {
   return `${YYYY}-${MM}-${DD} ${HH}:${mm}:${ss}`;
 };
 
-const toSimpleTimestamp = (csvData: Tx[]) => csvData.map<Tx>(rowData => ({
+const toSimpleTimestamp = <T extends Row>(csvData: T[]) => csvData.map<T>(rowData => ({
   ...rowData,
   timestamp: formatDate(rowData.timestamp),
 }));
 
-export const transformCSV = flow<[Row[]], Row[], string>(
+export const transformData = flow<[Row[]], Row[], string>(
   // pickColumns(['timestamp', 'pool_id', 'amount', 'from', 'type']),
   toSimpleTimestamp,
   unparse,
