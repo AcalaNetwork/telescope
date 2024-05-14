@@ -1,7 +1,7 @@
-import { Row } from './pull';
-
 import { flow } from 'lodash';
 import { unparse } from 'papaparse';
+
+import { Row } from './pull';
 
 const pickColumns = (columns: string[]) => (csvData: any[]) => csvData.map(d =>
   columns.reduce((acc, col) => ({ ...acc, [col]: d[col] }), {}),
