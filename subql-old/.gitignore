@@ -55,4 +55,6 @@ Thumbs.db
 *.wmv
 
 .data
-.eslintcache
+.yarn
+
+.DS_Store

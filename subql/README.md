@@ -1,10 +1,3 @@
-# Euphrates Subql
-Subql that indexes [Euphrates](https://farm.acala.network/) transactions.
+# Acala Stats Subql
 
-## Deploy
-publish to IPFS
-```
-export SUBQL_ACCESS_TOKEN=<your token>
-
-subql publish
-```
+Subquery for Acala Stats

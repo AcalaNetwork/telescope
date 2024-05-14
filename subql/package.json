@@ -1,37 +1,38 @@
 {
-  "name": "euphrates-analytics-subql",
-  "version": "0.0.2",
-  "description": "Subql for Acala Euphrates",
+  "name": "subql-acala-stats",
+  "version": "0.0.4",
+  "description": "Subquery for Acala Stats",
   "main": "dist/index.js",
   "scripts": {
-    "generate-types": "typechain --target=ethers-v5 --out-dir=./src/typechain abis/*.json",
     "build": "subql build",
-    "codegen": "subql codegen && yarn generate-types",
+    "codegen": "subql codegen",
     "start:docker": "docker-compose pull && docker-compose up --remove-orphans",
-    "dev": "yarn codegen && yarn build && docker-compose pull && docker-compose up --remove-orphans",
+    "dev": "subql codegen && subql build && docker-compose pull && docker-compose up --remove-orphans",
     "prepack": "rm -rf dist && npm run build",
-    "test": "jest"
+    "test": "subql build && subql-node test"
   },
+  "homepage": "https://github.com/subquery/acala-subql-starter",
+  "repository": "github:subquery/acala-subql-starter",
   "files": [
     "dist",
     "schema.graphql",
     "project.yaml"
   ],
-  "author": "Acala Team",
+  "author": "Acala Developers",
   "license": "MIT",
-  "dependencies": {
-    "@subql/common": "latest",
-    "@subql/types-ethereum": "latest",
-    "@subql/validator": "latest",
-    "abab": "^2.0.6",
-    "assert": "^2.0.0"
-  },
   "devDependencies": {
+    "@acala-network/types": "latest",
+    "@polkadot/api": "^10",
     "@subql/cli": "latest",
-    "@subql/node-ethereum": "latest",
+    "@subql/node": "latest",
     "@subql/testing": "latest",
     "@subql/types": "latest",
-    "ethers": "^5.7.2",
-    "typescript": "latest"
+    "typescript": "^5.2.2"
+  },
+  "exports": {
+    "chaintypes": "src/chaintypes.ts"
+  },
+  "dependencies": {
+    "@ethersproject/units": "^5.7.0"
   }
 }
