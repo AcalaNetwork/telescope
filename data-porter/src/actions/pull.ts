@@ -46,11 +46,7 @@ export const pullDataFromDb = async <T = Row>(
 
     for (const table of tableNames) {
       const { rows } = await client.query(`SELECT * FROM "${schema}"."${table}"`);
-      res.push({
-        schema,
-        table,
-        rows,
-      });
+      res.push({ schema,table,rows });
     }
 
   } catch (err) {

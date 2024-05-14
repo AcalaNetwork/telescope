@@ -3,8 +3,8 @@ import { unparse } from 'papaparse';
 
 import { Row } from './pull';
 
-const pickColumns = (columns: string[]) => (csvData: any[]) => csvData.map(d =>
-  columns.reduce((acc, col) => ({ ...acc, [col]: d[col] }), {}),
+const pickColumns = (columns: string[]) => (rows: Row[]) => rows.map(r =>
+  columns.reduce((acc, col) => ({ ...acc, [col]: r[col] }), {}),
 );
 
 // this shape is compatible with dune
