@@ -28,14 +28,14 @@ services:
     volumes:
       - ./:/app
     command:
-      - -f=ipfs://QmR1bNNxccr9A8523Wq4WWgbDr7euY7jCBPq4gnAWuFv6N
-      # - -f=./app
+      # - -f=ipfs://QmR1bNNxccr9A8523Wq4WWgbDr7euY7jCBPq4gnAWuFv6N
+      - -f=./app
       - --db-schema=euphrates
       - --workers=4
       - --batch-size=30
       - --unfinalized-blocks=false
       - --disable-historical
-      - --network-endpoint=https://eth-rpc-acala.aca-api.network
+      - --network-endpoint=wss://eth-rpc-acala.aca-api.network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://subquery-node:3000/ready"]
       interval: 3s

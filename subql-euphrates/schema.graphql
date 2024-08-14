@@ -1,0 +1,12 @@
+type EuphratesTx @entity {
+  id: ID!
+  type: String!
+  recipient: String!
+  txHash: String!
+  blockNumber: Int!
+  timestamp: Date!
+  poolId: Int!
+  shareAmount: BigInt! # amount in the log
+  tokenAmount: BigInt! # amount of the underlying share token
+  dotAmount: BigInt!   # amount of dot equivalent (only for ldot and tdot pools)
+}
