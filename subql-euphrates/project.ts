@@ -7,8 +7,8 @@ import {
 // Can expand the Datasource processor types via the generic param
 const project: EthereumProject = {
   specVersion: "1.0.0",
-  version: "0.0.1",
-  name: "euphrates analytics",
+  version: "1.0.0",
+  name: "euphrates stats",
   description:
     "",
   runner: {
@@ -43,7 +43,8 @@ const project: EthereumProject = {
   dataSources: [
     {
       kind: EthereumDatasourceKind.Runtime,
-      startBlock: 4440289,
+      startBlock: 4538300,
+      // startBlock: 6000000,
       options: {
         // Must be a key of assets
         abi: "staking",
@@ -65,6 +66,13 @@ const project: EthereumProject = {
             handler: "handleUnstake",
             filter: {
               topics: ["Unstake(address,uint256,uint256)"],
+            },
+          },
+          {
+            kind: EthereumHandlerKind.Block,
+            handler: "getEuphratesStatsFromBlock",
+            filter: {
+              modulo: 8 * 60 * 60 / 12,   // every 8 hours
             },
           },
         ],

@@ -1,4 +1,5 @@
 
+import { formatUnits } from "ethers/lib/utils";
 import { Dex__factory, Erc20__factory, Euphrates__factory, Homa__factory, Wtdot__factory } from "../typechain";
 
 const DEX_ADDR = '0x0000000000000000000000000000000000000803';
@@ -21,25 +22,26 @@ export const ldotToDotAmount = async (amount: bigint): Promise<bigint> => {
 }
 
 export const wtdotToDotAmount = async (amount: bigint): Promise<bigint> => {
-  const [
-    withdrawRate,
-    [dotLiquidity],
-    tdotTotalSupply
-  ] = await Promise.all([
-    wtdot.withdrawRate(),
-    dex.getLiquidityPool(DOT_ADDR, LDOT_ADDR),
-    tdot.totalSupply(),
-  ]);
+  return amount;    // TODO: more accurate calculation
+  // const [
+  //   withdrawRate,
+  //   [dotLiquidity],
+  //   tdotTotalSupply
+  // ] = await Promise.all([
+  //   wtdot.withdrawRate(),
+  //   dex.getLiquidityPool(DOT_ADDR, LDOT_ADDR),
+  //   tdot.totalSupply(),
+  // ]);
   
-  const tdotAmount = amount * withdrawRate.toBigInt() / BigInt(1e18);
-  const dotAmount = tdotAmount * dotLiquidity.toBigInt() / tdotTotalSupply.toBigInt();
-  return dotAmount * 2n;    // another half is ldot
+  // const tdotAmount = amount * withdrawRate.toBigInt() / BigInt(1e18);
+  // const dotAmount = tdotAmount * dotLiquidity.toBigInt() / tdotTotalSupply.toBigInt();
+  // return dotAmount * 2n;    // another half is ldot
 }
 
 export const tokenAmountToDotAmount = async (
   tokenAmount: bigint,
   poolId: number,
-): Promise<bigint> => {
+) => {
   let dotAmount = 0n;
   if ([0, 2, 5].includes(poolId)) {
     dotAmount = await ldotToDotAmount(tokenAmount);
@@ -49,16 +51,49 @@ export const tokenAmountToDotAmount = async (
     dotAmount = tokenAmount;
   }
 
-  return dotAmount;
-}
+  const dotAmountUi = Number(formatUnits(dotAmount, 10));
+  return { dotAmount, dotAmountUi };
+};
+
+const getShareTokenDecimals = (poolId: number) => (
+  poolId <= 5
+    ? 10  // ldot, dot or wtdot
+    : 9   // jitosol
+)
 
 export const shareToTokenAmount = async (
   shareAmount: bigint,
   poolId: number,
-): Promise<bigint> => {
-  const eachangeRate = poolId <= 5
+) => {
+  let eachangeRate = poolId <= 5
     ? (await euphrates.convertInfos(poolId)).convertedExchangeRate.toBigInt()
     : BigInt(1e18);     // 1:1, no conversion
 
-  return shareAmount * eachangeRate / BigInt(1e18);
+  if (eachangeRate === 0n) {    // before lcdot was converted
+    eachangeRate = BigInt(1e18);
+  }
+
+  const tokenAmount = shareAmount * eachangeRate / BigInt(1e18);
+  const tokenAmountUi = Number(formatUnits(tokenAmount, getShareTokenDecimals(poolId)));
+
+  return { tokenAmount, tokenAmountUi };
+};
+
+export const getPoolStats = async (poolId: number) => {
+  const totalShares = await euphrates.totalShares(poolId);
+  const { tokenAmount, tokenAmountUi } = await shareToTokenAmount(totalShares.toBigInt(), poolId);
+  const { dotAmount, dotAmountUi } = await tokenAmountToDotAmount(tokenAmount, poolId);
+
+  // logger.info(`total shares for pool ${poolId}: ${totalShares.toString()}`);
+  // logger.info(`token amount for pool ${poolId}: ${tokenAmount.toString()}`);
+  // logger.info(`dot amount for pool ${poolId}: ${dotAmount.toString()}`);
+  // logger.info('');
+
+  return {
+    poolId,
+    tokenAmount,
+    dotAmount,
+    tokenAmountUi,
+    dotAmountUi,
+  };
 }

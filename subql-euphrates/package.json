@@ -1,6 +1,6 @@
 {
   "name": "subql-euphrates",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Subql for Acala Euphrates",
   "main": "dist/index.js",
   "scripts": {

@@ -3,6 +3,6 @@ first fill `.env.example` and `mv .env.example .env`
 
 pull data from postgres and upload to dune
 ```
-yarn update:dune
+yarn upload
 ```
 

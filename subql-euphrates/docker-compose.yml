@@ -14,7 +14,7 @@ services:
       retries: 100
 
   subquery-node:
-    image: onfinality/subql-node-ethereum:latest
+    image: onfinality/subql-node-ethereum:v3.7.1
     depends_on:
       "postgres":
         condition: service_healthy
@@ -28,11 +28,11 @@ services:
     volumes:
       - ./:/app
     command:
-      # - -f=ipfs://QmR1bNNxccr9A8523Wq4WWgbDr7euY7jCBPq4gnAWuFv6N
+      # - -f=ipfs://QmWuiDNHt1JUJcZUMNRjn7kzNrPZK4zieos5yH7qMK9B5z
       - -f=./app
       - --db-schema=euphrates
-      - --workers=4
-      - --batch-size=30
+      - --workers=2
+      - --batch-size=20
       - --unfinalized-blocks=false
       - --disable-historical
       - --network-endpoint=wss://eth-rpc-acala.aca-api.network
@@ -41,24 +41,3 @@ services:
       interval: 3s
       timeout: 5s
       retries: 10
-
-  graphql-engine:
-    image: onfinality/subql-query:latest
-    ports:
-      - 3000:3000
-    depends_on:
-      "postgres":
-        condition: service_healthy
-      "subquery-node":
-        condition: service_healthy
-    restart: always
-    environment:
-      DB_USER: postgres
-      DB_PASS: postgres
-      DB_DATABASE: postgres
-      DB_HOST: postgres
-      DB_PORT: 5432
-    command:
-      - --name=app
-      - --playground
-      - --indexer=http://subquery-node:3000
