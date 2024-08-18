@@ -77,17 +77,16 @@ const EUPHRATES_POOLS = [0, 1, 2, 3, 4, 5, 6];
 export async function getEuphratesStatsFromBlock(block: EthereumBlock): Promise<void> {
   const poolStats = await Promise.all(EUPHRATES_POOLS.map(getPoolStats));
   logger.info("new euphrates stats at block " + block.number.toString());
-  logger.info(JSON.stringify(poolStats, (_key, value) =>
-    typeof value === 'bigint' ? value.toString() : value
-  ));
+  // logger.info(JSON.stringify(poolStats, (_key, value) =>
+  //   typeof value === 'bigint' ? value.toString() : value
+  // ));
 
-  await Promise.all(poolStats.map(async stat => {
-    const pool = PoolStats.create({
+  const statEntities = poolStats.map(stat => PoolStats.create({
       id: `${block.number}-${stat.poolId}`,
       timestamp: new Date(Number(block.timestamp * 1000n)),
       ...stat,
-    });
+    })
+  );
 
-    await pool.save();
-  }));
+  store.bulkCreate('PoolStats', statEntities);
 }

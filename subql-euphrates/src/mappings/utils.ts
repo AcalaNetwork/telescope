@@ -10,19 +10,20 @@ const TDOT_ADDR = '0x0000000000000000000300000000000000000000';
 const EUPHRATES_ADDR = '0x7Fe92EC600F15cD25253b421bc151c51b0276b7D';
 const WTDOT_ADDR = '0xe1bD4306A178f86a9214c39ABCD53D021bEDb0f9';
 
-const homa = Homa__factory.connect(HOMA_ADDR, api);
-const euphrates = Euphrates__factory.connect(EUPHRATES_ADDR, api);
-const wtdot = Wtdot__factory.connect(WTDOT_ADDR, api);
-const dex = Dex__factory.connect(DEX_ADDR, api);
-const tdot = Erc20__factory.connect(TDOT_ADDR, api);
-
 export const ldotToDotAmount = async (amount: bigint): Promise<bigint> => {
+  const homa = Homa__factory.connect(HOMA_ADDR, api);
+
   const exchangeRate = await homa.getExchangeRate();
   return amount * exchangeRate.toBigInt() / BigInt(1e18);
 }
 
 export const wtdotToDotAmount = async (amount: bigint): Promise<bigint> => {
   return amount;    // TODO: more accurate calculation
+
+  // const wtdot = Wtdot__factory.connect(WTDOT_ADDR, api);
+  // const dex = Dex__factory.connect(DEX_ADDR, api);
+  // const tdot = Erc20__factory.connect(TDOT_ADDR, api);
+
   // const [
   //   withdrawRate,
   //   [dotLiquidity],
@@ -65,6 +66,8 @@ export const shareToTokenAmount = async (
   shareAmount: bigint,
   poolId: number,
 ) => {
+  const euphrates = Euphrates__factory.connect(EUPHRATES_ADDR, api);
+
   let eachangeRate = poolId <= 5
     ? (await euphrates.convertInfos(poolId)).convertedExchangeRate.toBigInt()
     : BigInt(1e18);     // 1:1, no conversion
@@ -80,14 +83,11 @@ export const shareToTokenAmount = async (
 };
 
 export const getPoolStats = async (poolId: number) => {
+  const euphrates = Euphrates__factory.connect(EUPHRATES_ADDR, api);
+
   const totalShares = await euphrates.totalShares(poolId);
   const { tokenAmount, tokenAmountUi } = await shareToTokenAmount(totalShares.toBigInt(), poolId);
   const { dotAmount, dotAmountUi } = await tokenAmountToDotAmount(tokenAmount, poolId);
-
-  // logger.info(`total shares for pool ${poolId}: ${totalShares.toString()}`);
-  // logger.info(`token amount for pool ${poolId}: ${tokenAmount.toString()}`);
-  // logger.info(`dot amount for pool ${poolId}: ${dotAmount.toString()}`);
-  // logger.info('');
 
   return {
     poolId,
