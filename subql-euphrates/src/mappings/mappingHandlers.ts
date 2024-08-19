@@ -22,7 +22,7 @@ export async function handleStake(log: StakeLog): Promise<void> {
   const poolId = args.poolId.toNumber();
   const shareAmount = args.amount.toBigInt();
   const { tokenAmount, tokenAmountUi } = await shareToTokenAmount(shareAmount, poolId);
-  const { dotAmount, dotAmountUi } = await tokenAmountToDotAmount(tokenAmount, poolId);
+  const { dotAmount, dotAmountUi } = await tokenAmountToDotAmount(tokenAmount, poolId, blockNumber);
 
   const type = TxType.Stake;
   const tx = EuphratesTx.create({
@@ -52,7 +52,7 @@ export async function handleUnstake(log: UnstakeLog): Promise<void> {
   const poolId = args.poolId.toNumber();
   const shareAmount = args.amount.toBigInt();
   const { tokenAmount, tokenAmountUi } = await shareToTokenAmount(shareAmount, poolId);
-  const { dotAmount, dotAmountUi } = await tokenAmountToDotAmount(tokenAmount, poolId);
+  const { dotAmount, dotAmountUi } = await tokenAmountToDotAmount(tokenAmount, poolId, blockNumber);
 
   const type = TxType.Unstake;
   const tx = EuphratesTx.create({
@@ -75,11 +75,8 @@ export async function handleUnstake(log: UnstakeLog): Promise<void> {
 
 const EUPHRATES_POOLS = [0, 1, 2, 3, 4, 5, 6];
 export async function getEuphratesStatsFromBlock(block: EthereumBlock): Promise<void> {
-  const poolStats = await Promise.all(EUPHRATES_POOLS.map(getPoolStats));
+  const poolStats = await Promise.all(EUPHRATES_POOLS.map(poolId => getPoolStats(poolId, block.number)));
   logger.info("new euphrates stats at block " + block.number.toString());
-  // logger.info(JSON.stringify(poolStats, (_key, value) =>
-  //   typeof value === 'bigint' ? value.toString() : value
-  // ));
 
   const statEntities = poolStats.map(stat => PoolStats.create({
       id: `${block.number}-${stat.poolId}`,
