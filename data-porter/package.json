@@ -1,10 +1,10 @@
 {
-  "name": "acala-data-porter",
-  "version": "0.0.3",
+  "name": "telescope-data-porter",
+  "version": "1.0.0",
   "main": "src/index.ts",
   "license": "MIT",
   "scripts": {
-    "update:dune": "ts-node src/index.ts"
+    "upload": "ts-node src/index.ts"
   },
   "dependencies": {
     "axios": "^1.5.1",

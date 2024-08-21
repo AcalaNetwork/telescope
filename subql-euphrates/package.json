@@ -1,7 +1,7 @@
 {
-  "name": "euphrates-analytics-subql",
-  "version": "0.0.2",
-  "description": "Subql for Acala Euphrates",
+  "name": "telescope-euphrates",
+  "version": "1.0.0",
+  "description": "euphrates stats indexer",
   "main": "dist/index.js",
   "scripts": {
     "generate-types": "typechain --target=ethers-v5 --out-dir=./src/typechain abis/*.json",
