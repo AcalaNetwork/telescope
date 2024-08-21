@@ -1,7 +1,7 @@
 {
-  "name": "subql-acala-stats",
-  "version": "0.0.4",
-  "description": "Subquery for Acala Stats",
+  "name": "subql-acala-dex",
+  "version": "1.0.0",
+  "description": "acala dex indexer",
   "main": "dist/index.js",
   "scripts": {
     "build": "subql build",
