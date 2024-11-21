@@ -8,9 +8,11 @@ type EuphratesTx @entity {
   poolId: Int!
   shareAmount: BigInt!   # amount in the log
   tokenAmount: BigInt!   # amount of the underlying share token
-  dotAmount: BigInt!     # amount of dot equivalent (only for ldot and tdot pools)
+  dotAmount: BigInt!     # amount of dot (for { ldot, tdot } pool, it's the dot equivalent. for jitosol-ldot lp pool, it's the dot equivalent of the ldot composition for lp)
+  jitosolAmount: BigInt! # amount of jitosol
   tokenAmountUi: Float!  # UI (formatted) amount
   dotAmountUi: Float!    # UI (formatted) amount
+  jitosolAmountUi: Float! # UI (formatted) amount
 }
 
 type PoolStats @entity {
@@ -18,7 +20,9 @@ type PoolStats @entity {
   timestamp: Date!
   poolId: Int!
   tokenAmount: BigInt!   # amount of the underlying share token
-  dotAmount: BigInt!     # amount of dot equivalent (only for ldot and tdot pools)
+  dotAmount: BigInt!     # amount of dot (for { ldot, tdot } pool, it's the dot equivalent. for jitosol-ldot lp pool, it's the dot equivalent of the ldot composition for lp)
+  jitosolAmount: BigInt! # amount of jitosol
   tokenAmountUi: Float!  # UI (formatted) amount
   dotAmountUi: Float!    # UI (formatted) amount
+  jitosolAmountUi: Float! # UI (formatted) amount
 }
