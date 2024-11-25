@@ -9,7 +9,7 @@ WITH daily_staked AS (
         pool_id,
         pool_name,
         SUM(CASE WHEN type = 'stake' THEN dot_amount_ui ELSE dot_amount_ui * -1 END) AS dot_staked
-    FROM query_3988562  /* euphrates tx v2 */
+    FROM query_3988562  /* euphrates tx v3 */
     GROUP BY 1, 2, 3
     ORDER BY 1, 2
 ),
