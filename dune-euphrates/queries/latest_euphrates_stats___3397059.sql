@@ -43,4 +43,3 @@ SELECT *
 FROM latest_pool_stats A
 CROSS JOIN latest_cumulative_stats B
 CROSS JOIN latest_tx_stats C
-OIN latest_tx_stats C
