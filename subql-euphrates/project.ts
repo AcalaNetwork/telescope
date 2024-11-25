@@ -44,7 +44,6 @@ const project: EthereumProject = {
     {
       kind: EthereumDatasourceKind.Runtime,
       startBlock: 4538000,
-      // startBlock: 6000000,
       options: {
         // Must be a key of assets
         abi: "staking",
@@ -66,6 +65,13 @@ const project: EthereumProject = {
             handler: "handleUnstake",
             filter: {
               topics: ["Unstake(address,uint256,uint256)"],
+            },
+          },
+          {
+            kind: EthereumHandlerKind.Event,
+            handler: "handleClaim",
+            filter: {
+              topics: ["ClaimReward(address,uint256,address,uint256)"],
             },
           },
           {

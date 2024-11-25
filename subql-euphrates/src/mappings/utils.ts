@@ -2,30 +2,17 @@
 import { formatUnits } from "ethers/lib/utils";
 
 import { Euphrates__factory, Homa__factory, Wtdot__factory, Dex__factory, Erc20__factory } from "../typechain";
-
-const HOMA_ADDR = '0x0000000000000000000000000000000000000805';
-const DEX_ADDR = '0x0000000000000000000000000000000000000803';
-
-const EUPHRATES_ADDR = '0x7Fe92EC600F15cD25253b421bc151c51b0276b7D';
-const WTDOT_ADDR = '0xe1bD4306A178f86a9214c39ABCD53D021bEDb0f9';
-const JITOSOL_ADDR = '0xA7fB00459F5896C3bD4df97870b44e868Ae663D7';
-const LDOT_ADDR = '0x0000000000000000000100000000000000000003';
-const JITOSOL_LDOT_LP_ADDR = '0x00000000000000000002000000000301A7fB0045';
-
-const JITOSOL_DECIMALS = 9;
-const OTHERS_DECIMALS = 10;
-
-// const JITOSOL_LDOT_LP_DEPLOY_BLOCK = 7303940;
+import { Addr, Decimals } from "./consts";
 
 export const ldotToDotAmount = async (amount: bigint): Promise<bigint> => {
-  const homa = Homa__factory.connect(HOMA_ADDR, api);
+  const homa = Homa__factory.connect(Addr.Homa, api);
 
   const exchangeRate = await homa.getExchangeRate();
   return amount * exchangeRate.toBigInt() / BigInt(1e18);
 }
 
 export const wtdotToDotAmount = async (amount: bigint): Promise<bigint> => {
-  const wtdot = Wtdot__factory.connect(WTDOT_ADDR, api);
+  const wtdot = Wtdot__factory.connect(Addr.Wtdot, api);
 
   const withdrawRate = await wtdot.withdrawRate();
   const tdotAmount = amount * withdrawRate.toBigInt() / BigInt(1e18);
@@ -37,11 +24,11 @@ export const wtdotToDotAmount = async (amount: bigint): Promise<bigint> => {
 export const parseLpTokenAmount = async (lpAmount: bigint) => {
 
   try {
-    const dex = Dex__factory.connect(DEX_ADDR, api);
-    const lp = Erc20__factory.connect(JITOSOL_LDOT_LP_ADDR, api);
+    const dex = Dex__factory.connect(Addr.Dex, api);
+    const lp = Erc20__factory.connect(Addr.JitosolLdotLp, api);
 
     const lpTotalSupply = (await lp.totalSupply()).toBigInt();
-    const [jitosolLiq, ldotLiq] = (await dex.getLiquidityPool(JITOSOL_ADDR, LDOT_ADDR)).map(x => x.toBigInt());
+    const [jitosolLiq, ldotLiq] = (await dex.getLiquidityPool(Addr.Jitosol, Addr.Ldot)).map(x => x.toBigInt());
 
     const jitosolAmount = lpAmount * jitosolLiq / lpTotalSupply;
     const ldotAmount = lpAmount * ldotLiq / lpTotalSupply;
@@ -79,8 +66,8 @@ export const toCoreTokenAmount = async (
     jitosolAmount = lpInfo.jitosolAmount;
   }
 
-  const dotAmountUi = Number(formatUnits(dotAmount, OTHERS_DECIMALS));
-  const jitosolAmountUi = Number(formatUnits(jitosolAmount, JITOSOL_DECIMALS));
+  const dotAmountUi = Number(formatUnits(dotAmount, Decimals.DotFamily));
+  const jitosolAmountUi = Number(formatUnits(jitosolAmount, Decimals.Jitosol));
 
   return {
     dotAmount,
@@ -92,15 +79,15 @@ export const toCoreTokenAmount = async (
 
 const getShareTokenDecimals = (poolId: number) => (
   poolId === 6
-    ? JITOSOL_DECIMALS
-    : OTHERS_DECIMALS
+    ? Decimals.Jitosol
+    : Decimals.DotFamily
 )
 
 export const shareToTokenAmount = async (
   shareAmount: bigint,
   poolId: number,
 ) => {
-  const euphrates = Euphrates__factory.connect(EUPHRATES_ADDR, api);
+  const euphrates = Euphrates__factory.connect(Addr.Euphrates, api);
 
   let eachangeRate = poolId <= 5
     ? (await euphrates.convertInfos(poolId)).convertedExchangeRate.toBigInt()
@@ -120,7 +107,7 @@ export const getPoolStats = async (
   poolId: number,
   blockNumber: number,
 ) => {
-  const euphrates = Euphrates__factory.connect(EUPHRATES_ADDR, api);
+  const euphrates = Euphrates__factory.connect(Addr.Euphrates, api);
 
   const totalShares = await euphrates.totalShares(poolId);
   const { tokenAmount, tokenAmountUi } = await shareToTokenAmount(totalShares.toBigInt(), poolId);
