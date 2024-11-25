@@ -8,14 +8,10 @@ WITH daily_token_flow AS (
         DATE_TRUNC('day', "timestamp") AS day,
         pool_id,
         pool_name,
-        CASE
-            WHEN "pool_id" in (0, 1, 2, 3, 4, 5) THEN 'DOT'
-            WHEN "pool_id" = 6 THEN 'JITOSOL'
-            ELSE '???'
-        END as "token_symbol",
-        SUM(CASE WHEN type = 'stake' THEN token_amount_ui ELSE token_amount_ui * -1 END) AS token_amount,
-        SUM(CASE WHEN type = 'stake' THEN dot_amount_ui ELSE dot_amount_ui * -1 END) AS dot_amount
-    FROM query_3988562  /* euphrates tx v2 */
+        -- SUM(CASE WHEN type = 'stake' THEN token_amount_ui ELSE token_amount_ui * -1 END) AS token_amount,
+        SUM(CASE WHEN type = 'stake' THEN dot_amount_ui ELSE dot_amount_ui * -1 END) AS dot_amount_ui,
+        SUM(CASE WHEN type = 'stake' THEN jitosol_amount_ui ELSE jitosol_amount_ui * -1 END) AS jitosol_amount_ui
+    FROM query_3988562  /* euphrates tx v3 */
     GROUP BY 1, 2, 3
     ORDER BY 1, 2
 ),
@@ -23,18 +19,17 @@ WITH daily_token_flow AS (
 daily_usd_flow AS (
     SELECT
         *,
-        CASE
-            WHEN "pool_id" in (0, 1, 2, 3, 4, 5) THEN "price" * "dot_amount"
-            WHEN "pool_id" = 6 THEN "price" * "token_amount"
-            ELSE 0
-        END as "token_usd"
+        dot_price.price * A.dot_amount_ui + jitosol_price.price * A.jitosol_amount_ui as "total_usd"
     FROM daily_token_flow A
-    JOIN query_3989007 as B  /* daily token price */
-    ON A.day = B.day
-    AND A.token_symbol = B.symbol
+    LEFT JOIN query_3989007 as dot_price
+        ON A.day = dot_price.day 
+        AND dot_price.symbol = 'DOT'
+    LEFT JOIN query_3989007 as jitosol_price
+        ON A.day = jitosol_price.day 
+        AND jitosol_price.symbol = 'JITOSOL'
     ORDER BY 1, 2
 )
 
-SELECT
-    *
+SELECT *
+FROM daily_usd_flow
 FROM daily_usd_flow
