@@ -1,11 +1,11 @@
 -- part of a query repo
--- query name: daily_usd_flow
+-- query name: usd_flow
 -- query link: https://dune.com/queries/3999276
 
 
-WITH daily_token_flow AS (
+WITH weekly_token_flow AS (
     SELECT
-        DATE_TRUNC('day', "timestamp") AS day,
+        DATE_TRUNC('week', "timestamp") AS day,
         pool_id,
         pool_name,
         -- SUM(CASE WHEN type = 'stake' THEN token_amount_ui ELSE token_amount_ui * -1 END) AS token_amount,
@@ -16,11 +16,11 @@ WITH daily_token_flow AS (
     ORDER BY 1, 2
 ),
 
-daily_usd_flow AS (
+weekly_usd_flow AS (
     SELECT
         *,
         dot_price.price * A.dot_amount_ui + jitosol_price.price * A.jitosol_amount_ui as "total_usd"
-    FROM daily_token_flow A
+    FROM weekly_token_flow A
     LEFT JOIN query_3989007 as dot_price
         ON A.day = dot_price.day 
         AND dot_price.symbol = 'DOT'
@@ -31,5 +31,5 @@ daily_usd_flow AS (
 )
 
 SELECT *
-FROM daily_usd_flow
+FROM weekly_usd_floww
 FROM daily_usd_flow

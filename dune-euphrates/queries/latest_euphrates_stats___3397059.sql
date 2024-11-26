@@ -37,9 +37,17 @@ latest_tx_stats AS (
     FROM query_3397026          -- users and transactions
     ORDER BY 1 DESC 
     LIMIT 1
+),
+
+latest_claim_stats AS (
+    SELECT cumulative_aca
+    FROM query_4333164
+    ORDER BY 1 DESC 
+    LIMIT 1
 )
 
 SELECT *
-FROM latest_pool_stats A
-CROSS JOIN latest_cumulative_stats B
-CROSS JOIN latest_tx_stats C
+FROM latest_pool_stats
+CROSS JOIN latest_cumulative_stats
+CROSS JOIN latest_tx_stats
+CROSS JOIN latest_claim_stats
