@@ -1,5 +1,5 @@
 -- part of a query repo
--- query name: latest_euphrates_stats
+-- query name: euphrates_latest_stats
 -- query link: https://dune.com/queries/3397059
 
 

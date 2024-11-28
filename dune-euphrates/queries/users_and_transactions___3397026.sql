@@ -1,5 +1,5 @@
 -- part of a query repo
--- query name: users_and_transactions
+-- query name: euphrates_users_and_txs
 -- query link: https://dune.com/queries/3397026
 
 

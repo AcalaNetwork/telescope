@@ -21,8 +21,8 @@
   "author": "Acala Developers",
   "license": "MIT",
   "devDependencies": {
-    "@acala-network/types": "^6.2.0",
-    "@polkadot/api": "^14",
+    "@acala-network/types": "latest",
+    "@polkadot/api": "^10",
     "@subql/cli": "latest",
     "@subql/node": "latest",
     "@subql/testing": "latest",

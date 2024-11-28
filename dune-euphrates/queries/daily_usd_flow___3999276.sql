@@ -1,5 +1,5 @@
 -- part of a query repo
--- query name: usd_flow
+-- query name: euphrates_usd_flow
 -- query link: https://dune.com/queries/3999276
 
 
@@ -31,5 +31,4 @@ weekly_usd_flow AS (
 )
 
 SELECT *
-FROM weekly_usd_floww
-FROM daily_usd_flow
+FROM weekly_usd_flowly_usd_flow
