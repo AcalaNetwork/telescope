@@ -1,5 +1,6 @@
-import { DUNE_URL } from '../consts';
 import axios from 'axios';
+
+import { DUNE_URL } from '../consts';
 
 interface UploadParams {
   data: string,

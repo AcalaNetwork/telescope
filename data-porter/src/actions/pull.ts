@@ -8,9 +8,9 @@ export interface RowBase {
 
 export type Row = Extended<RowBase>;
 
-interface QueryTarget {
-  schema: string,
-  tables?: string[],
+interface DbTarget {
+  schema: string;
+  table: string;
 }
 
 interface DbData <T = Row> {
@@ -19,38 +19,24 @@ interface DbData <T = Row> {
   rows: T[],
 }
 
-const getAllTables = async (client: Client, schema: string) => {
-  console.log(`querying all tables under schema ${schema} ...`);
-
-  const res = await client.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = $1
-  `, [schema]);
-
-  return res.rows.map(row => row.table_name);
-};
-
 export const pullDataFromDb = async <T = Row>(
   clientConfig: ClientConfig,
-  queryTarget: QueryTarget,
+  dbTargets: DbTarget[],
 ): Promise<DbData<T>[]> => {
-  const { schema, tables } = queryTarget;
   const client = new Client(clientConfig);
 
   const res: DbData<T>[] = [];
   try {
     await client.connect();
 
-    const tableNames = tables ?? await getAllTables(client, schema);
-
-    for (const table of tableNames) {
+    for (const { schema, table } of dbTargets) {
       const { rows } = await client.query(`SELECT * FROM "${schema}"."${table}"`);
-      res.push({ schema,table,rows });
+      res.push({ schema, table, rows });
     }
 
   } catch (err) {
     console.error('Error fetching data:', err);
+    throw err;
   } finally {
     await client.end();
   }
