@@ -5,7 +5,7 @@
 
 WITH daily_tx_count AS (
   SELECT
-    DATE_TRUNC('week', block_time) AS day,
+    DATE_TRUNC({{internval}}, block_time) AS day,
     method,
     COUNT(extrinsic_hash) AS daily_count,
     SUM(CASE WHEN method = 'mint' THEN dot_amount_ui ELSE 0 END) AS total_staked_ui,
