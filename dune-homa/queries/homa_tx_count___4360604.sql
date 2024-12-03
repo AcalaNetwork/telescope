@@ -19,7 +19,7 @@ daily_count_by_method AS (
     day,
     SUM(CASE WHEN method = 'mint' THEN daily_count ELSE 0 END) AS mint_count,
     SUM(CASE WHEN method = 'redeem' THEN daily_count ELSE 0 END) AS redeem_count,
-    SUM(CASE WHEN method = 'fast_redeem' THEN daily_count ELSE 0 END) AS fast_redeem_count,
+    SUM(CASE WHEN method = 'fast redeem' THEN daily_count ELSE 0 END) AS fast_redeem_count,
     SUM(total_staked_ui) AS total_staked_ui,
     SUM(total_unstaked_ui) AS total_unstaked_ui
   FROM daily_tx_count
