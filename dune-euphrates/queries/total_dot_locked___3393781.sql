@@ -1,5 +1,5 @@
 -- part of a query repo
--- query name: total_dot_locked
+-- query name: euphrates_total_dot_locked
 -- query link: https://dune.com/queries/3393781
 
 
