@@ -116,20 +116,21 @@ dex_swap_formatted AS (
 SELECT
     E.block_time,
     E.address,
-    E.token_in,
     E.amount_in,
-    E.token_out,
+    E.token_in,
     E.amount_out,
+    E.token_out,
     CASE
         WHEN E.token_in IN ('AUSD', 'USDC') THEN E.amount_in
-        WHEN E.token_in = 'DOT' THEN E.amount_in * P.price
+        WHEN E.token_in IN ('DOT', 'lcDOT') THEN E.amount_in * P.price
         WHEN E.token_out IN ('AUSD', 'USDC') THEN E.amount_out
-        WHEN E.token_out = 'DOT' THEN E.amount_out * P.price
+        WHEN E.token_out IN ('DOT', 'lcDOT') THEN E.amount_out * P.price
         ELSE 0
     END AS usd_value,
     E.block_number,
     E.tx_hash
 FROM dex_swap_formatted E
-LEFT JOIN prices.usd_daily P
+LEFT JOIN query_3989007 P   -- daily token prices
 ON E.day = P.day AND P.symbol = 'DOT'
+WHERE E.day != DATE '2022-08-14'
 ORDER BY 1 DESC
