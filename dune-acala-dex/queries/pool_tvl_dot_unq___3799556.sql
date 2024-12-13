@@ -4,8 +4,9 @@
 
 
 SELECT
-    day_timestamp,
+    date,
     token0_tvl AS dot_tvl,
     token1_tvl AS unq_tvl
 FROM query_3782346 AS pool_tvl
 WHERE pool_name = 'DOT/UNQ'
+AND token0_tvl > 0

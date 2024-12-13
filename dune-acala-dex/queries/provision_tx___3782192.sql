@@ -54,7 +54,14 @@ provision_tx_extracted AS (
               '"}'
             )
           )
-          WHEN JSON_EXTRACT_SCALAR(X.token0_json, '$.erc20') IS NOT NULL THEN '{"ForeignAsset":"14"}'
+          WHEN JSON_EXTRACT_SCALAR(X.token0_json, '$.erc20') IS NOT NULL THEN (
+            CONCAT(
+              '{"Erc20":"',
+              JSON_EXTRACT_SCALAR(X.token0_json, '$.erc20'),
+              '"}'
+            )
+          )
+          ELSE '???'
         END AS token0_varchar,
 
         CASE
@@ -86,7 +93,14 @@ provision_tx_extracted AS (
               '"}'
             )
           )
-          WHEN JSON_EXTRACT_SCALAR(X.token1_json, '$.erc20') IS NOT NULL THEN '{"ForeignAsset":"14"}'
+          WHEN JSON_EXTRACT_SCALAR(X.token1_json, '$.erc20') IS NOT NULL THEN (
+            CONCAT(
+              '{"Erc20":"',
+              JSON_EXTRACT_SCALAR(X.token1_json, '$.erc20'),
+              '"}'
+            )
+          )
+          ELSE '???'
         END AS token1_varchar
     FROM provision_tx_raw X
 ),
@@ -109,8 +123,10 @@ provision_tx_parsed AS (
         C.symbol AS token1,
         C.decimals AS decimals1
     FROM provision_tx_extracted A
-    JOIN query_3670410 B ON A.token0_varchar = B.asset
-    JOIN query_3670410 C ON A.token1_varchar = C.asset
+    LEFT JOIN query_4397191 B  -- acala assets
+    ON A.token0_varchar = B.asset
+    LEFT JOIN query_4397191 C  -- acala assets
+    ON A.token1_varchar = C.asset
 )
 
 SELECT
