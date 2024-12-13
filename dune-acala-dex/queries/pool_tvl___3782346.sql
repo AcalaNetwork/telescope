@@ -194,4 +194,5 @@ SELECT
     token1_tvl,
     usd_tvl
 FROM daily_pool_tvl_complete
+WHERE date >= date_add('month', -1 * {{show data for how many months:}}, current_date)
 ORDER BY date DESC, pool_name;
