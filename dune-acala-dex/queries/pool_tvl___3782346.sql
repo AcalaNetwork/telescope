@@ -113,6 +113,8 @@ daily_pool_tvl AS (
     FROM pool_tvl_usd
     WHERE pool_name != 'AUSD/IBTC'
     GROUP BY 1, 2
+    UNION
+    SELECT * FROM query_4419518  -- tdot_tvl
 ),
 
 date_range AS (
@@ -132,7 +134,7 @@ all_dates AS (
 
 all_pool_names AS (
     SELECT DISTINCT pool_name
-    FROM pool_tvl_usd
+    FROM daily_pool_tvl
     WHERE pool_name != 'AUSD/IBTC'  -- Add filter here
 ),
 

@@ -118,8 +118,8 @@ liquidity_tx_parsed AS (
 
 SELECT
     D.block_time,
-    D.method,
     D.address,
+    D.method,
     CONCAT(token0, '/', token1) AS pool_name,
     D.token0,
     D.token1,
