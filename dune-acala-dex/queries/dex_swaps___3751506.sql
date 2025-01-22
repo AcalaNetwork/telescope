@@ -46,7 +46,13 @@ dex_swap_raw_extracted AS (
               '"}'
             )
           )
-          WHEN JSON_EXTRACT_SCALAR(X.token_in_json, '$.erc20') IS NOT NULL THEN '{"ForeignAsset":"14"}'
+        WHEN JSON_EXTRACT_SCALAR(X.token_in_json, '$.erc20') IS NOT NULL THEN (
+            CONCAT(
+              '{"Erc20":"',
+              JSON_EXTRACT_SCALAR(X.token_in_json, '$.erc20'),
+              '"}'
+            )
+          )
         END AS token_in_varchar,
 
         CASE
@@ -71,7 +77,13 @@ dex_swap_raw_extracted AS (
               '"}'
             )
           )
-          WHEN JSON_EXTRACT_SCALAR(X.token_out_json, '$.erc20') IS NOT NULL THEN '{"ForeignAsset":"14"}'
+          WHEN JSON_EXTRACT_SCALAR(X.token_out_json, '$.erc20') IS NOT NULL THEN (
+            CONCAT(
+              '{"Erc20":"',
+              JSON_EXTRACT_SCALAR(X.token_out_json, '$.erc20'),
+              '"}'
+            )
+          )
         END AS token_out_varchar
     FROM dex_swap_raw X
 ),
@@ -94,8 +106,10 @@ dex_swap_parsed AS (
         C.symbol AS token_out,
         C.decimals AS decimals_out
     FROM dex_swap_raw_extracted A
-    JOIN query_3670410 B ON A.token_in_varchar = B.asset
-    JOIN query_3670410 C ON A.token_out_varchar = C.asset
+    LEFT JOIN query_4397191 B  -- acala assets
+    ON A.token_in_varchar = B.asset
+    LEFT JOIN query_4397191 C  -- acala assets
+    ON A.token_out_varchar = C.asset
 ),
 
 dex_swap_formatted AS (
@@ -116,20 +130,27 @@ dex_swap_formatted AS (
 SELECT
     E.block_time,
     E.address,
-    E.token_in,
     E.amount_in,
-    E.token_out,
+    E.token_in,
     E.amount_out,
+    E.token_out,
     CASE
+        WHEN E.token_in IN ('DOT', 'lcDOT') THEN E.amount_in * dot_price.price
+        WHEN E.token_in IN ('JITOSOL') THEN E.amount_in * jitosol_price.price
         WHEN E.token_in IN ('AUSD', 'USDC') THEN E.amount_in
-        WHEN E.token_in = 'DOT' THEN E.amount_in * P.price
+        WHEN E.token_out IN ('DOT', 'lcDOT') THEN E.amount_out * dot_price.price
+        WHEN E.token_out IN ('JITOSOL') THEN E.amount_out * jitosol_price.price
         WHEN E.token_out IN ('AUSD', 'USDC') THEN E.amount_out
-        WHEN E.token_out = 'DOT' THEN E.amount_out * P.price
         ELSE 0
     END AS usd_value,
     E.block_number,
     E.tx_hash
 FROM dex_swap_formatted E
-LEFT JOIN prices.usd_daily P
-ON E.day = P.day AND P.symbol = 'DOT'
+LEFT JOIN query_3989007 as dot_price
+    ON E.day = dot_price.day 
+    AND dot_price.symbol = 'DOT'
+LEFT JOIN query_3989007 as jitosol_price
+    ON E.day = jitosol_price.day 
+    AND jitosol_price.symbol = 'JITOSOL'
+WHERE E.day != DATE '2022-08-14'
 ORDER BY 1 DESC

@@ -4,9 +4,9 @@
 
 
 SELECT
-    day_timestamp,
+    date,
     token0_tvl AS aca_tvl,
     token1_tvl AS usdc_tvl
-    -- usd_value AS usd_tvl
 FROM query_3782346 AS pool_tvl
 WHERE pool_name = 'ACA/USDC'
+AND token0_tvl > 0
