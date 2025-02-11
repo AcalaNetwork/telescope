@@ -92,17 +92,16 @@ loan_cumulative AS (
     FROM loan_daily
 ),
 
---------------------------------------------------------------------------------
--- Generate a complete grid of dates and tokens, then fill in missing days 
--- with the last known cumulative TVL value.
---------------------------------------------------------------------------------
-
+---------------------------------------------
+-- fill in the blank for all tokens X dates
+---------------------------------------------
 date_range AS (
     SELECT 
         MIN(date) AS start_date,
         MAX(date) AS end_date
     FROM loan_cumulative
 ),
+
 
 all_dates AS (
     SELECT DATE_ADD('day', value, start_date) AS date
@@ -139,7 +138,7 @@ latest_historical AS (
     WHERE rn = 1
 ),
 
-final AS (
+loan_full AS (
     SELECT 
         f.date,
         f.token,
@@ -151,9 +150,26 @@ final AS (
       ON f.date = h.date AND f.token = h.token
 ),
 
---------------------------------------------------------------------------------
--- Join price information to calculate the USD TVL.
--- For tokens in ('tDOT','lcDOT','LDOT','DOT') we join query_3989007 (DOT price),
+loan_with_usd AS (
+    SELECT
+        A.date,
+        A.token,
+        A.token_tvl,
+        A.token_tvl * B.price AS usd_tvl
+    FROM loan_full A
+    LEFT JOIN query_4615196 B
+      ON A.date = B.date
+      AND A.token = B.symbol
+)
+
+SELECT 
+    date,
+    token,
+    token_tvl,
+    usd_tvl
+FROM loan_with_usd
+ORDER BY date DESC, token;
+y_3989007 (DOT price),
 -- for token USDC we use a fixed price of 1,
 -- and for token ACA we join query_4615196 (ACA price) as per the referenced query.
 --------------------------------------------------------------------------------

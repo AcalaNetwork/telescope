@@ -1,9 +1,30 @@
 -- part of a query repo
--- query name: token_prices_inferred
+-- query name: all_token_prices
 -- query link: https://dune.com/queries/4615196
 
 
-WITH date_range AS (
+WITH ldot_price AS (
+    SELECT 
+        A.day AS day, 
+        'LDOT' AS symbol,
+        (A.price * COALESCE(B.exchange_rate, 0.1)) AS price  -- TODO: index all homa data
+    FROM query_3989007 A       -- daily token prices
+    LEFT JOIN query_3728405 B  -- homa daily
+    ON A.day = B.day_timestamp
+    WHERE A.symbol = 'DOT'
+),
+
+tdot_lcdot_price AS (
+    SELECT 
+        day,
+        v.symbol,
+        price
+    FROM query_3989007 A       -- daily token prices
+    CROSS JOIN (VALUES ('tDOT'), ('lcDOT')) AS v(symbol)
+    WHERE A.symbol = 'DOT'
+),
+
+date_range AS (
     SELECT 
         TIMESTAMP '2022-02-09' AS start_date,
         current_date AS end_date
@@ -16,7 +37,7 @@ all_dates AS (
     CROSS JOIN UNNEST(sequence(0, date_diff('day', start_date, end_date))) AS t(value)
 ),
 
-token_prices_inferred AS (
+aca_price AS (
     SELECT
         d.date,
         'ACA' AS symbol,
@@ -30,9 +51,22 @@ token_prices_inferred AS (
         ) AS price
     FROM all_dates d
     LEFT JOIN query_3799539 q ON d.date = q.date
+),
+
+all_price_inferred AS (
+    SELECT * FROM aca_price
+    UNION ALL
+    SELECT * FROM ldot_price
+    UNION ALL
+    SELECT * FROM tdot_lcdot_price
+),
+
+all_token_price AS (
+    SELECT * FROM all_price_inferred
+    UNION ALL
+    SELECT * FROM query_3989007  -- daily token prices
 )
 
-SELECT
-    *
-FROM token_prices_inferred
+SELECT *
+FROM all_token_price
 ORDER BY date DESC
