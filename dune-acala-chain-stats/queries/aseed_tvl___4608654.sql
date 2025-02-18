@@ -3,7 +3,7 @@
 -- query link: https://dune.com/queries/4608654
 
 
-WITH loan_tx_raw AS (
+WITH loan_position_tx_raw AS (
     SELECT
         block_time,
         block_number,
@@ -18,6 +18,30 @@ WITH loan_tx_raw AS (
     FROM acala.events
     WHERE section = 'loans'
       AND method = 'PositionUpdated'
+),
+
+loan_confiscate_tx_raw AS (
+    SELECT
+        block_time,
+        block_number,
+        method,
+        block_hash,
+        extrinsic_id,
+        extrinsic_hash,
+        event_id,
+        JSON_EXTRACT_SCALAR(data, '$[0]') AS address,
+        JSON_EXTRACT(data, '$[1]') AS token_json,
+        CAST(JSON_EXTRACT(data, '$[2]') AS VARCHAR) AS amount_varchar
+    FROM acala.events
+    WHERE section = 'loans'
+      AND method = 'ConfiscateCollateralAndDebit'
+      AND block_number < 500075
+),
+
+loan_tx_raw AS (
+    SELECT * FROM loan_position_tx_raw
+    UNION ALL
+    SELECT * FROM loan_confiscate_tx_raw
 ),
 
 loan_tx_extracted AS (
@@ -46,6 +70,7 @@ loan_tx_parsed AS (
         A.block_hash,
         A.extrinsic_hash AS tx_hash,
         A.address,
+        A.method,
         CASE
           WHEN starts_with(amount_varchar, '0x') THEN
             CASE
@@ -69,7 +94,11 @@ loan_tx_parsed AS (
 loan_tx AS (
     SELECT
         D.*,
-        D.amount_int256 / POWER(10, D.decimal_value) AS amount
+        CASE 
+          -- if method is confiscate, then amount should be negative
+          WHEN D.method = 'ConfiscateCollateralAndDebit' THEN -D.amount_int256 / POWER(10, D.decimal_value)
+          ELSE D.amount_int256 / POWER(10, D.decimal_value)
+        END AS amount
     FROM loan_tx_parsed D
     ORDER BY timestamp DESC
 ),
@@ -91,6 +120,8 @@ loan_cumulative AS (
         SUM(amount) OVER (PARTITION BY token ORDER BY date) AS token_tvl
     FROM loan_daily
 ),
+
+
 
 ---------------------------------------------
 -- fill in the blank for all tokens X dates
@@ -169,32 +200,7 @@ SELECT
     usd_tvl
 FROM loan_with_usd
 ORDER BY date DESC, token;
-y_3989007 (DOT price),
--- for token USDC we use a fixed price of 1,
--- and for token ACA we join query_4615196 (ACA price) as per the referenced query.
---------------------------------------------------------------------------------
-
-final_with_prices AS (
-    SELECT
-        f.date,
-        f.token,
-        f.token_tvl,
-        CASE 
-          WHEN f.token IN ('tDOT', 'lcDOT', 'LDOT', 'DOT') THEN f.token_tvl * dot_prices.price
-          WHEN f.token = 'USDC' THEN f.token_tvl * 1
-          WHEN f.token = 'ACA' THEN f.token_tvl * aca_prices.price
-          ELSE 0
-        END AS usd_tvl
-    FROM final f
-    LEFT JOIN query_3989007 dot_prices 
-      ON f.date = dot_prices.day AND dot_prices.symbol = 'DOT'
-    LEFT JOIN query_4615196 aca_prices 
-      ON f.date = aca_prices.date AND aca_prices.symbol = 'ACA'
-)
-
-SELECT 
-    date,
-    token,
+,
     token_tvl,
     usd_tvl
 FROM final_with_prices

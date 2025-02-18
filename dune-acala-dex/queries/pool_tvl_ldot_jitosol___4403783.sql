@@ -8,6 +8,6 @@ SELECT
     token0_tvl AS ldot_tvl,
     token1_tvl AS jitosol_tvl,
     usd_tvl
-FROM query_3782346 AS pool_tvl
+FROM dune.euphrates.result_dex_pool_tvl AS pool_tvl
 WHERE pool_name = 'LDOT/JITOSOL'
 AND token0_tvl > 0

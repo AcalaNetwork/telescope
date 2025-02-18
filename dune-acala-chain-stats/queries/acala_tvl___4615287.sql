@@ -7,7 +7,7 @@ WITH dex_tvl AS (
     SELECT 
         date AS day,
         SUM(usd_tvl) AS usd_tvl
-    FROM query_3782346
+    FROM dune.euphrates.result_dex_pool_tvl
     GROUP BY 1
 ),
 
@@ -37,6 +37,9 @@ acala_tvl AS (
     SELECT D.day, D.usd_tvl, 'euphrates' AS app FROM euphrates_tvl D
     UNION ALL
     SELECT E.day, E.usd_tvl, 'aseed' AS app FROM aseed_tvl E
+    UNION ALL
+    SELECT day_timestamp as day, F.usd_tvl, 'homa' AS app FROM query_3728405 F
 )
 
 SELECT * FROM acala_tvl
+ORDER BY 1, 2 DESC

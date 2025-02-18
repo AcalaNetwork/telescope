@@ -69,4 +69,5 @@ SELECT
 FROM staking_cumulative A
 JOIN query_4615196 B  -- token prices inferred
 ON A.day = B.date
+AND B.symbol = 'ACA'
 ORDER BY 1 ASC

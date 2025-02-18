@@ -31,17 +31,17 @@ dex_txs AS (
         A.block_number,
         B.token0,
         B.token1,
-        CASE 
-            WHEN A.token_in = B.token0 THEN A.amount_in 
-            WHEN A.token_out = B.token0 THEN -A.amount_out 
-            ELSE 0 
+        CASE
+            WHEN A.token_in = B.token0 THEN A.amount_in
+            WHEN A.token_out = B.token0 THEN -A.amount_out
+            ELSE 0
         END AS net_amount0,
-        CASE 
-            WHEN A.token_in = B.token1 THEN A.amount_in 
-            WHEN A.token_out = B.token1 THEN -A.amount_out 
-            ELSE 0 
+        CASE
+            WHEN A.token_in = B.token1 THEN A.amount_in
+            WHEN A.token_out = B.token1 THEN -A.amount_out
+            ELSE 0
         END AS net_amount1
-    FROM query_3787671 A -- dex_swap splitted tx
+    FROM dune.euphrates.result_dex_swap_splitted A
     JOIN (
         SELECT DISTINCT token0, token1
         FROM query_3769045 -- dex liquidity tx
@@ -49,7 +49,7 @@ dex_txs AS (
         SELECT DISTINCT token0, token1
         FROM query_3782192 -- add provision tx
     ) B
-    ON (A.token_in = B.token0 AND A.token_out = B.token1) 
+    ON (A.token_in = B.token0 AND A.token_out = B.token1)
     OR (A.token_in = B.token1 AND A.token_out = B.token0)
 ),
 
@@ -88,18 +88,18 @@ pool_tvl_usd AS (
         CASE
             WHEN E.token0 IN ('DOT', 'lcDOT') THEN E.token0_tvl * dot_price.price * 2
             WHEN E.token0 IN ('JITOSOL') THEN E.token0_tvl * jitosol_price.price * 2
-            WHEN E.token0 IN ('AUSD', 'USDC') THEN E.token0_tvl * 2
+            WHEN E.token0 IN ('AUSD', 'USDC', 'USDT') THEN E.token0_tvl * 2
             WHEN E.token1 IN ('DOT', 'lcDOT') THEN E.token1_tvl * dot_price.price * 2
             WHEN E.token1 IN ('JITOSOL') THEN E.token1_tvl * jitosol_price.price * 2
-            WHEN E.token1 IN ('AUSD', 'USDC') THEN E.token1_tvl * 2
+            WHEN E.token1 IN ('AUSD', 'USDC', 'USDT') THEN E.token1_tvl * 2
             ELSE 0
         END AS usd_tvl
     FROM pool_tvl E
     LEFT JOIN query_3989007 as dot_price
-        ON DATE_TRUNC('day', E.block_time) = dot_price.day 
+        ON DATE_TRUNC('day', E.block_time) = dot_price.day
         AND dot_price.symbol = 'DOT'
     LEFT JOIN query_3989007 as jitosol_price
-        ON DATE_TRUNC('day', E.block_time) = jitosol_price.day 
+        ON DATE_TRUNC('day', E.block_time) = jitosol_price.day
         AND jitosol_price.symbol = 'JITOSOL'
 ),
 
@@ -118,7 +118,7 @@ daily_pool_tvl AS (
 ),
 
 date_range AS (
-    SELECT 
+    SELECT
         MIN(DATE_TRUNC('day', block_time)) AS start_date,
         MAX(DATE_TRUNC('day', block_time)) AS end_date
     FROM pool_tvl_usd
@@ -126,9 +126,9 @@ date_range AS (
 ),
 
 all_dates AS (
-    SELECT 
+    SELECT
         DATE_TRUNC('day', DATE_ADD('day', value, start_date)) AS date
-    FROM date_range 
+    FROM date_range
     CROSS JOIN UNNEST(sequence(0, date_diff('day', start_date, end_date))) AS t(value)
 ),
 
@@ -146,7 +146,7 @@ full_date_pool_combination AS (
 ),
 
 historical_values AS (
-    SELECT 
+    SELECT
         d1.date as ref_date,
         d2.date as data_date,
         d2.pool_name,
@@ -154,7 +154,7 @@ historical_values AS (
         d2.token1_tvl,
         d2.usd_tvl,
         ROW_NUMBER() OVER (
-            PARTITION BY d1.date, d2.pool_name 
+            PARTITION BY d1.date, d2.pool_name
             ORDER BY d2.date DESC
         ) as rn
     FROM (SELECT DISTINCT date FROM full_date_pool_combination) d1
@@ -163,7 +163,7 @@ historical_values AS (
 ),
 
 latest_historical AS (
-    SELECT 
+    SELECT
         ref_date as date,
         pool_name,
         token0_tvl as historical_token0_tvl,
@@ -174,7 +174,7 @@ latest_historical AS (
 ),
 
 daily_pool_tvl_complete AS (
-    SELECT 
+    SELECT
         f.date,
         f.pool_name,
         COALESCE(d.token0_tvl, h.historical_token0_tvl, 0) AS token0_tvl,
@@ -182,14 +182,14 @@ daily_pool_tvl_complete AS (
         COALESCE(d.usd_tvl, h.historical_usd_tvl, 0) AS usd_tvl
     FROM full_date_pool_combination f
     LEFT JOIN daily_pool_tvl d
-        ON f.date = d.date 
+        ON f.date = d.date
         AND f.pool_name = d.pool_name
     LEFT JOIN latest_historical h
         ON f.date = h.date
         AND f.pool_name = h.pool_name
 )
 
-SELECT 
+SELECT
     date,
     pool_name,
     token0_tvl,
@@ -197,4 +197,4 @@ SELECT
     usd_tvl
 FROM daily_pool_tvl_complete
 -- WHERE date >= date_add('month', -1 * {{show data for how many months:}}, current_date)
-ORDER BY date DESC, pool_name;
+ORDER BY date DESC, pool_name;e;
