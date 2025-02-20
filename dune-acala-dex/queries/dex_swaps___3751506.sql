@@ -137,10 +137,10 @@ SELECT
     CASE
         WHEN E.token_in IN ('DOT', 'lcDOT') THEN E.amount_in * dot_price.price
         WHEN E.token_in IN ('JITOSOL') THEN E.amount_in * jitosol_price.price
-        WHEN E.token_in IN ('AUSD', 'USDC') THEN E.amount_in
+        WHEN E.token_in IN ('AUSD', 'USDC', 'USDT') THEN E.amount_in
         WHEN E.token_out IN ('DOT', 'lcDOT') THEN E.amount_out * dot_price.price
         WHEN E.token_out IN ('JITOSOL') THEN E.amount_out * jitosol_price.price
-        WHEN E.token_out IN ('AUSD', 'USDC') THEN E.amount_out
+        WHEN E.token_out IN ('AUSD', 'USDC', 'USDT') THEN E.amount_out
         ELSE 0
     END AS usd_value,
     E.block_number,
@@ -153,4 +153,47 @@ LEFT JOIN query_3989007 as jitosol_price
     ON E.day = jitosol_price.day 
     AND jitosol_price.symbol = 'JITOSOL'
 WHERE E.day != DATE '2022-08-14'
-ORDER BY 1 DESC
+ORDER BY 1 DESCx_hash,
+      COALESCE(
+          p1.pool_name,  -- matches token_in/token_out
+          p2.pool_name,  -- matches token_out/token_in
+          '???'
+      ) as pool_name
+    FROM dex_swap_parsed D
+    LEFT JOIN query_4740395 p1   -- dex_pool_names
+        ON CONCAT(D.token_in, '/', D.token_out) = p1.pool_name
+    LEFT JOIN query_4740395 p2   -- dex_pool_names
+        ON CONCAT(D.token_out, '/', D.token_in) = p2.pool_name
+    ORDER BY 1 DESC
+),
+
+dex_swap_usd AS (
+SELECT
+    A.block_time,
+    A.address,
+    A.amount_in,
+    A.token_in,
+    A.amount_out,
+    A.token_out,
+    CASE
+        WHEN A.token_in IN ('DOT', 'lcDOT') THEN A.amount_in * dot_price.price
+        WHEN A.token_in IN ('JITOSOL') THEN A.amount_in * jitosol_price.price
+        WHEN A.token_in IN ('AUSD', 'USDC', 'USDT') THEN A.amount_in
+        WHEN A.token_out IN ('DOT', 'lcDOT') THEN A.amount_out * dot_price.price
+        WHEN A.token_out IN ('JITOSOL') THEN A.amount_out * jitosol_price.price
+        WHEN A.token_out IN ('AUSD', 'USDC', 'USDT') THEN A.amount_out
+        ELSE 0
+    END AS usd_value,
+    A.block_number,
+    A.tx_hash
+    FROM dex_swap_formatted A
+    LEFT JOIN query_3989007 AS dot_price
+        ON A.day = dot_price.day 
+        AND dot_price.symbol = 'DOT'
+    LEFT JOIN query_3989007 AS jitosol_price
+        ON A.day = jitosol_price.day 
+        AND jitosol_price.symbol = 'JITOSOL'
+    WHERE A.day != DATE '2022-08-14'
+      AND A.pool_name != '???'
+    ORDER BY 1 DESC
+)
